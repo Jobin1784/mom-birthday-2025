@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>妈妈生日快乐！</title>
+    <style>
+        /* --- 全局设置 --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "KaiTi", "STKaiti", "楷体", serif;
+            background: linear-gradient(135deg, #fffcf5 0%, #fff3f0 100%);
+            min-height: 100vh;
+            color: #4a4a4a;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* --- 顶部照片 (已调大) --- */
+        .header {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+        .photo-frame {
+            /* 修改：从 140px 调大到 200px */
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            border-radius: 50%;
+            border: 6px solid #ffbcbc; /* 边框稍微加粗了一点点以匹配大图 */
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- 蛋糕舞台 --- */
+        .cake-stage {
+            position: relative;
+            width: 260px;
+            height: 220px;
+            margin: 0 auto 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        /* 隐藏的惊喜文字 */
+        .hidden-wish {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: max-content; 
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1s ease 0.5s;
+            z-index: 1;
+            white-space: nowrap; /* 强制不换行 */
+        }
+        .hidden-wish h2 {
+            color: #e55039;
+            font-size: 1.6rem; 
+            margin: 0;
+            text-shadow: 0 2px 5px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 蛋糕整体包装 */
+        .cake-body {
+            position: relative;
+            width: 200px;
+            height: 140px;
+            display: flex;
+            z-index: 10;
+        }
+
+        /* 左半边蛋糕 */
+        .half-cake {
+            width: 100px;
+            height: 100%;
+            position: relative;
+            transition: all 1.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* 绘制蛋糕层 */
+        .half-cake.left {
+            background: linear-gradient(to bottom, #ffecd2 0%, #ffecd2 30%, #fcb69f 30%, #fcb69f 60%, #ff9a9e 60%, #ff9a9e 100%);
+            border-radius: 10px 0 0 10px;
+            transform-origin: bottom left;
+        }
+        .half-cake.right {
+            background: linear-gradient(to bottom, #ffecd2 0%, #ffecd2 30%, #fcb69f 30%, #fcb69f 60%, #ff9a9e 60%, #ff9a9e 100%);
+            border-radius: 0 10px 10px 0;
+            transform-origin: bottom right;
+        }
+        
+        /* 奶油装饰 */
+        .half-cake::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            width: 100%;
+            height: 20px;
+            background: #fff;
+            border-radius: 10px;
+        }
+
+        /* 蜡烛 */
+        .candle {
+            position: absolute;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 40px;
+            background: #e74c3c;
+            z-index: 11;
+            transition: opacity 0.3s;
+        }
+        .flame {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 14px;
+            background: #f1c40f;
+            border-radius: 50%;
+            animation: flicker 0.5s infinite alternate;
+            box-shadow: 0 0 5px #f1c40f;
+        }
+        @keyframes flicker { 0% { opacity: 1; } 100% { opacity: 0.7; transform: translateX(-50%) scale(1.1); } }
+
+        /* --- 刀子 --- */
+        .knife {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-45deg);
+            font-size: 60px;
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 20;
+        }
+
+        /* --- 动画状态类 --- */
+        .cake-stage.cutting .knife {
+            top: 20px;
+            opacity: 1;
+        }
+        
+        .cake-stage.cut .half-cake.left {
+            transform: rotate(-25deg) translateX(-30px);
+            opacity: 0;
+        }
+        .cake-stage.cut .half-cake.right {
+            transform: rotate(25deg) translateX(30px);
+            opacity: 0;
+        }
+        .cake-stage.cut .candle, 
+        .cake-stage.cut .knife {
+            opacity: 0;
+        }
+        .cake-stage.cut .hidden-wish {
+            opacity: 1;
+        }
+
+        /* --- 按钮 --- */
+        .btn-main {
+            display: block;
+            margin: 0 auto;
+            padding: 12px 35px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
+            transition: transform 0.1s;
+        }
+        .btn-main:active { transform: scale(0.95); }
+
+        /* --- 信件区域 --- */
+        .letter-box {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 40px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            line-height: 1.8;
+            font-size: 1.05rem;
+            position: relative;
+            background-image: linear-gradient(#f1f2f6 1px, transparent 1px);
+            background-size: 100% 2em;
+            background-position: 0 10px;
+        }
+
+        .letter-box p {
+            margin: 0 0 2em 0;
+            text-indent: 2em;
+            text-align: justify;
+        }
+
+        .salutation {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .signature {
+            text-align: right;
+            margin-top: 30px;
+            font-weight: bold;
+        }
+
+        .date {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 顶部：照片 -->
+        <div class="header">
+            <div class="photo-frame">
+                <img src="mom.jpg" alt="妈妈" onerror="this.style.display='none';this.parentNode.style.background='#eee'">
+            </div>
+        </div>
+
+        <!-- 中部：可分裂蛋糕 -->
+        <div class="cake-stage" id="stage">
+            <div class="hidden-wish">
+                <h2>❤️ 生日快乐 岁岁安康 ❤️</h2>
+            </div>
+
+            <div class="knife">🔪</div>
+            <div class="candle"><div class="flame"></div></div>
+
+            <div class="cake-body">
+                <div class="half-cake left"></div>
+                <div class="half-cake right"></div>
+            </div>
+        </div>
+
+        <button class="btn-main" onclick="cutIt()" id="actionBtn">🔪 点击切蛋糕</button>
+
+        <!-- 底部：信件内容 -->
+        <div class="letter-box">
+            <div class="salutation">亲爱的妈妈：</div>
+
+            <p>生日快乐😙😙😙！</p>
+
+            <p>往年你生日我都是写纸质明信片的，但这学期一些课让我涉猎了一些编程和网页制作方面的知识，所以我就突发奇想🤔——能不能给你做一个生日祝福的网页？</p>
+
+            <p>于是就诞生了如你眼前所见的网页，虽然比较粗糙，只有一个电子蛋糕🍰，但着实也花了我不少功夫，代表了我的心意🥺。希望你能开心😁！</p>
+
+            <p>切开蛋糕🍰，烦恼全消🎉！最后再次祝妈妈生日快乐，天天开心！年年岁岁花相似，岁岁年年人更美！身体健康，万事如意！工作顺利，学生都乖乖学习不闹😁😁😙😙！</p>
+
+            <div class="signature">
+                爱你的儿子 鲁粟 
+            </div>
+            <div class="date">2025.12.14</div>
+        </div>
+    </div>
+
+    <script>
+        function cutIt() {
+            const stage = document.getElementById('stage');
+            const btn = document.getElementById('actionBtn');
+
+            // 1. 刀子落下
+            stage.classList.add('cutting');
+
+            // 2. 0.5秒后，蛋糕分裂并虚化
+            setTimeout(() => {
+                stage.classList.add('cut');
+                
+                // 按钮变化
+                btn.innerText = "🎉 祝妈妈生日快乐！";
+                btn.style.backgroundColor = "#2ed573";
+                btn.disabled = true;
+
+                // 3. 撒花
+                fireConfetti();
+            }, 500);
+        }
+
+        function fireConfetti() {
+            var duration = 3 * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+    </script>
+</body>
+</html>
